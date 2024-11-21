@@ -43,10 +43,6 @@ function VerifyAccount() {
 
       const axiosError = error as AxiosError<ApiResponse>;
 
-      // Default error message
-
-      // ("There was a problem with your sign-up. Please try again.");
-
       toast({
         title: "Sign Up Failed",
         description: axiosError.response?.data.message,
