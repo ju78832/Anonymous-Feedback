@@ -28,7 +28,7 @@ import { messageSchema } from "@/schemas/messageSchema";
 const specialChar = "||";
 
 const parseStringMessages = (messageString: string): string[] => {
-  return messageString.split(specialChar);
+  return messageString.split(specialChar) || messageString.split(".");
 };
 
 const initialMessageString =
@@ -37,7 +37,11 @@ const initialMessageString =
 export default function SendMessage() {
   const params = useParams<{ username: string }>();
   const username = params.username;
+  const [isSuggestLoading, setIsSuggestLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [result, setResult] = useState(initialMessageString);
 
+  /*
   const {
     complete,
     completion,
@@ -47,6 +51,22 @@ export default function SendMessage() {
     api: "/api/suggest-messages",
     initialCompletion: initialMessageString,
   });
+  */
+  const fetchSuggestedMessages = async () => {
+    try {
+      setIsSuggestLoading(true);
+      const response = await axios.post("/api/suggest-messages", {
+        initialMessageString,
+      });
+      console.log(response);
+      setResult(response.data);
+    } catch (error: any) {
+      setError(error);
+      throw new Error(error);
+    } finally {
+      setIsSuggestLoading(false);
+    }
+  };
 
   const form = useForm<z.infer<typeof messageSchema>>({
     resolver: zodResolver(messageSchema),
@@ -85,15 +105,17 @@ export default function SendMessage() {
       setIsLoading(false);
     }
   };
-
+  /*
   const fetchSuggestedMessages = async () => {
     try {
-      complete("");
+      await complete("");
+  
     } catch (error) {
       console.error("Error fetching messages:", error);
       // Handle error appropriately
     }
   };
+  */
 
   return (
     <div className="container mx-auto my-8 p-6 bg-white rounded max-w-4xl">
@@ -153,7 +175,7 @@ export default function SendMessage() {
             {error ? (
               <p className="text-red-500">{error.message}</p>
             ) : (
-              parseStringMessages(completion).map((message, index) => (
+              parseStringMessages(result).map((message, index) => (
                 <Button
                   key={index}
                   variant="outline"
