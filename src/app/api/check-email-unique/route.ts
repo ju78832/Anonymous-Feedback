@@ -1,41 +1,39 @@
 import dbConnect from "@/lib/dbConnect";
-import UserModel from "@/model/User";
+import { emailValidation } from "@/schemas/signUpSchema";
 import { z } from "zod";
-import { emailValidation, usernameValidation } from "@/schemas/signUpSchema";
+import UserModel from "@/model/User";
 
-const UsernameQuerySchema = z.object({
-  username: usernameValidation,
+const EmailQuerySchema = z.object({
+  email: emailValidation,
 });
-
 export async function GET(request: Request) {
   await dbConnect();
-
   const { searchParams } = new URL(request.url);
-  const queryParamsUsername = {
-    username: searchParams.get("username"),
-  };
 
+  const queryParamsEmail = {
+    email: searchParams.get("email"),
+  };
   try {
-    const result = UsernameQuerySchema.safeParse(queryParamsUsername);
+    const result = EmailQuerySchema.safeParse(queryParamsEmail);
 
     if (!result.success) {
-      const usernameErrors = result.error.format().username?._errors || [];
+      const emailErrors = result.error.format().email?._errors || [];
       return Response.json(
         {
           success: false,
           message:
-            usernameErrors?.length > 0
-              ? usernameErrors.join(", ")
+            emailErrors?.length > 0
+              ? emailErrors.join(", ")
               : "Invalid query parameters",
         },
         { status: 400 }
       );
     }
 
-    const { username } = result.data;
+    const { email } = result.data;
 
     const existingVerifiedUser = await UserModel.findOne({
-      username,
+      email,
       isVerified: true,
     });
 
@@ -43,7 +41,7 @@ export async function GET(request: Request) {
       return Response.json(
         {
           success: false,
-          message: "Username is already taken",
+          message: "Email is already taken",
         },
         { status: 200 }
       );
@@ -52,16 +50,16 @@ export async function GET(request: Request) {
     return Response.json(
       {
         success: true,
-        message: "Username is unique",
+        message: "Email is unique",
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error checking username:", error);
+    console.error("Error checking email:", error);
     return Response.json(
       {
         success: false,
-        message: "Error checking username",
+        message: "Error checking email",
       },
       { status: 500 }
     );
