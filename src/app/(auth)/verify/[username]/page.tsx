@@ -37,7 +37,7 @@ function VerifyAccount() {
         title: "Success",
         description: response.data.message,
       });
-      router.replace("sign-in");
+      router.push("/sing-in");
     } catch (error) {
       console.error("Error during sign-up:", error);
 

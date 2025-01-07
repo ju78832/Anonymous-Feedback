@@ -25,10 +25,14 @@ import { signUpSchema } from "@/schemas/signUpSchema";
 
 export default function SignUpForm() {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
   const [usernameMessage, setUsernameMessage] = useState("");
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const debouncedUsername = useDebounceCallback(setUsername, 300);
+  const debouncedEmail = useDebounceCallback(setEmail, 300);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -62,8 +66,28 @@ export default function SignUpForm() {
         }
       }
     };
+    const checkEmailUnique = async () => {
+      if (email) {
+        setIsCheckingEmail(true);
+        setEmailMessage("");
+        try {
+          const response = await axios.get<ApiResponse>(
+            `/api/check-email-unique?email=${email}`
+          );
+          setEmailMessage(response.data.message);
+        } catch (error) {
+          const axiosError = error as AxiosError<ApiResponse>;
+          setEmailMessage(
+            axiosError.response?.data.message ?? "Error checking email"
+          );
+        } finally {
+          setIsCheckingEmail(false);
+        }
+      }
+    };
     checkUsernameUnique();
-  }, [username]);
+    checkEmailUnique();
+  }, [username, email]);
 
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true);
@@ -143,7 +167,26 @@ export default function SignUpForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
-                  <Input {...field} name="email" />
+                  <Input
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      debouncedEmail(e.target.value);
+                    }}
+                    name="email"
+                  />
+                  {isCheckingEmail && <Loader2 className="animate-spin" />}
+                  {!isCheckingEmail && emailMessage && (
+                    <p
+                      className={`text-sm ${
+                        emailMessage === "Email is unique"
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {emailMessage}
+                    </p>
+                  )}
                   <p className="text-muted text-gray-400 text-sm">
                     We will send you a verification code
                   </p>
