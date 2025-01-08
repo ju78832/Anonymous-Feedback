@@ -27,13 +27,18 @@ export async function GET(request: Request) {
 
     if (!user || user.length === 0) {
       return Response.json(
-        { message: "User not found", success: false },
-        { status: 404 }
+        { message: "No messages found", success: false },
+        { status: 201 }
       );
     }
 
     return Response.json(
-      { messages: user[0].messages },
+      {
+        messages: user[0].messages,
+        message: "Messages fetched successfully",
+        success: true,
+      },
+
       {
         status: 200,
       }
