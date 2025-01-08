@@ -40,7 +40,7 @@ export default function SendMessage() {
   const [isSuggestLoading, setIsSuggestLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [result, setResult] = useState(initialMessageString);
-  const [suggestedMessages, setSuggestedMessages] = useState<string>();
+  const [suggestedMessages, setSuggestedMessages] = useState<string>("");
 
   /*
   const {
@@ -54,9 +54,9 @@ export default function SendMessage() {
   });
   */
   const fetchSuggestedMessages = async () => {
-    initialMessageString = suggestedMessages
-      ? suggestedMessages
-      : initialMessageString;
+    if (suggestedMessages) {
+      initialMessageString = suggestedMessages;
+    }
     try {
       setIsSuggestLoading(true);
       const response = await axios.post("/api/suggest-messages", {
