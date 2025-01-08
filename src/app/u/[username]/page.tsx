@@ -31,7 +31,7 @@ const parseStringMessages = (messageString: string): string[] => {
   return messageString.split(specialChar) || messageString.split(".");
 };
 
-const initialMessageString =
+let initialMessageString =
   "What's your favorite movie?||Do you have any pets?||What's your dream job?";
 
 export default function SendMessage() {
@@ -40,6 +40,7 @@ export default function SendMessage() {
   const [isSuggestLoading, setIsSuggestLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [result, setResult] = useState(initialMessageString);
+  const [suggestedMessages, setSuggestedMessages] = useState<string>();
 
   /*
   const {
@@ -53,6 +54,9 @@ export default function SendMessage() {
   });
   */
   const fetchSuggestedMessages = async () => {
+    initialMessageString = suggestedMessages
+      ? suggestedMessages
+      : initialMessageString;
     try {
       setIsSuggestLoading(true);
       const response = await axios.post("/api/suggest-messages", {
@@ -76,6 +80,7 @@ export default function SendMessage() {
 
   const handleMessageClick = (message: string) => {
     form.setValue("content", message);
+    setSuggestedMessages(message);
   };
 
   const [isLoading, setIsLoading] = useState(false);
